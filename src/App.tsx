@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { fetchOpportunitiesPage, type OpportunityListItem } from './api/opportunities'
+import { fetchOpportunitiesPage, fetchOpportunityById, type OpportunityListItem, type OpportunityShowItem } from './api/opportunities'
 
 function App() {
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([])
@@ -9,6 +9,9 @@ function App() {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityShowItem | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadOpportunities = async () => {
@@ -53,6 +56,25 @@ function App() {
     }
   }
 
+  const loadSelectedOpportunity = async (id: number) => {
+    setDetailLoading(true)
+    setDetailError(null)
+
+    try {
+      const opportunity = await fetchOpportunityById(id)
+      setSelectedOpportunity(opportunity)
+    } catch (err) {
+      setDetailError(err instanceof Error ? err.message : 'Something went wrong')
+      setSelectedOpportunity(null)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  const handleSelectOpportunity = (id: number) => {
+    void loadSelectedOpportunity(id)
+  }
+
   const formatDate = (value: string) => {
     const date = new Date(value)
     return new Intl.DateTimeFormat('en-US', {
@@ -78,7 +100,7 @@ function App() {
             </thead>
             <tbody>
               {opportunities.map((opportunity: any) => (
-                <tr key={opportunity.id}>
+                <tr key={opportunity.id} onClick={() => handleSelectOpportunity(opportunity.id)}>
                   <td>{opportunity.title}</td>
                   <td>{opportunity.status}</td>
                   <td>{formatDate(opportunity.created_at)}</td>
@@ -91,6 +113,16 @@ function App() {
         <button onClick={handleLoadMore} disabled={loadingMore}>
           {loadingMore ? 'Loading...' : 'Load More'}
         </button>
+      )}
+
+      {detailLoading && <p>Loading opportunity...</p>}
+      {detailError && <p>{detailError}</p>}
+      {selectedOpportunity && !detailLoading && !detailError && (
+        <section>
+          <h2>{selectedOpportunity.title}</h2>
+          <p>{selectedOpportunity.status}</p>
+          <p>{selectedOpportunity.created_at}</p>
+        </section>
       )}
     </main>
   )

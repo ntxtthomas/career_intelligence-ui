@@ -24,6 +24,14 @@ export interface OpportunitiesResponse {
   meta: OpportunitiesPaginationMeta
 }
 
+export interface OpportunityShowItem {
+  id: number
+  title: string
+  company_name: string | null
+  status: string | null
+  created_at: string
+}
+
 const getToken = () => localStorage.getItem(TOKEN_KEY)
 
 const getAuthHeaders = () => {
@@ -89,4 +97,33 @@ export const fetchOpportunitiesPage = async (
       returned_count: payload.meta?.limit ?? opportunities.length,
     },
   }
+}
+
+export const fetchOpportunityById = async (id: number) => {
+    const response = await fetch(`${OPPORTUNITIES_URL}/${id}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch opportunity: ${response.status}`)
+    }
+
+    const payload = await response.json()
+
+    const opportunity = (payload.data ?? payload) as {
+        id: number
+        position_title?: string | null
+        status?: string | null
+        created_at?: string | null
+    }
+
+    return {
+        id: opportunity.id,
+        title: opportunity.position_title ?? 'Untitled',
+        company_name: null,
+        status: opportunity.status ?? null,
+        created_at: opportunity.created_at ?? '',
+    }
+
 }
