@@ -6,6 +6,9 @@ function App() {
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
 
   useEffect(() => {
     const loadOpportunities = async () => {
@@ -31,6 +34,23 @@ function App() {
 
   if (error) {
     return <p>{error}</p>
+  }
+
+  const handleLoadMore = async () => {
+    if (!hasMore || loadingMore) return
+
+    setLoadingMore(true)
+
+    try {
+    const data = await fetchOpportunitiesPage(nextCursor)
+    setOpportunities((prev) => [...prev, ...data.opportunities])
+    setNextCursor(data.meta.next_cursor)
+    setHasMore(data.meta.has_more)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   const formatDate = (value: string) => {
@@ -66,6 +86,11 @@ function App() {
               ))}
             </tbody>
         </table>
+      )}
+      {hasMore && (
+        <button onClick={handleLoadMore} disabled={loadingMore}>
+          {loadingMore ? 'Loading...' : 'Load More'}
+        </button>
       )}
     </main>
   )
