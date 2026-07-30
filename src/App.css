@@ -118,6 +118,16 @@ table {
     background-color: #f9f9f9;
   }
 
+button {
+  display: block;
+  margin: 50px auto;
+  width: 500px;
+  height: 50px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background-color: #f2f2f2;
+}
+
 #docs {
   border-right: 1px solid var(--border);
 
