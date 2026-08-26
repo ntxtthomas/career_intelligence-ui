@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './App.css'
-import { fetchOpportunitiesPage, fetchOpportunityById, type OpportunityListItem, type OpportunityShowItem } from './api/opportunities'
+import { fetchOpportunitiesPage, type OpportunityListItem } from './api/opportunities'
 
 function App() {
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([])
@@ -9,9 +10,9 @@ function App() {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityShowItem | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detailError, setDetailError] = useState<string | null>(null)
+  
+  
+  const navigate = useNavigate()
 
   useEffect(() => {
     const loadOpportunities = async () => {
@@ -56,23 +57,8 @@ function App() {
     }
   }
 
-  const loadSelectedOpportunity = async (id: number) => {
-    setDetailLoading(true)
-    setDetailError(null)
-
-    try {
-      const opportunity = await fetchOpportunityById(id)
-      setSelectedOpportunity(opportunity)
-    } catch (err) {
-      setDetailError(err instanceof Error ? err.message : 'Something went wrong')
-      setSelectedOpportunity(null)
-    } finally {
-      setDetailLoading(false)
-    }
-  }
-
   const handleSelectOpportunity = (id: number) => {
-    void loadSelectedOpportunity(id)
+    navigate(`/opportunities/${id}`)
   }
 
   const formatDate = (value: string) => {
@@ -113,16 +99,6 @@ function App() {
         <button onClick={handleLoadMore} disabled={loadingMore}>
           {loadingMore ? 'Loading...' : 'Load More'}
         </button>
-      )}
-
-      {detailLoading && <p>Loading opportunity...</p>}
-      {detailError && <p>{detailError}</p>}
-      {selectedOpportunity && !detailLoading && !detailError && (
-        <section>
-          <h2>{selectedOpportunity.title}</h2>
-          <p>{selectedOpportunity.status}</p>
-          <p>{selectedOpportunity.created_at}</p>
-        </section>
       )}
     </main>
   )
